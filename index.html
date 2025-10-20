@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Medicamentos</title>
+    
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Manifest for PWA -->
+    <link rel="manifest" href="data:application/json;base64,ewogICAgIm5hbWUiOiAiU2VndWltaWVudG8gZGUgTWVkaWNhbWVudG9zIiwKICAgICJzaG9ydF9uYW1lIjogIk1lZFRyYWNrZXIiLAogICAgImRlc2NyaXB0aW9uIjogIlVuYSBhcHBsaWNhY2nDs24gcGFyYSBlbCBzZWd1aW1pZW50byBkZSB0b21hIGRlIG1lZGljYW1lbnRvcy4iLAogICAgImljb25zIjogWwogICAgICAgIHsKICAgICAgICAgICAgInNyYyI6ICJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyLzllOTllOS8zMzMzMzM/dGV4dD1NZWQiLAogICAgICAgICAgICAidHlwZSI6ICJpbWFnZS9wbmciLAogICAgICAgICAgICAic2l6ZXMiOiAiMTkyeDE5MiIKICAgICAgICB9LAogICAgICAgIHsKICAgICAgICAgICAgInNyYyI6ICJodHRwczovL3BsYWNlaG9sZC5jby81MTJ4NTEyLzllOTllOS8zMzMzMzM/dGV4dD1NZWQiLAogICAgICAgICAgICAidHlwZSI6ICJpbWFnZS9wbmciLAogICAgICAgICAgICAic2l6ZXMiOiAiNTEyeDUxMiIKICAgICAgICB9CiAgICBdLAogICAgInN0YXJ0X3VybCI6ICIuIiwKICAgICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICAgInRoZW1lX2NvbG9yIjogIiMyNmE2OWEiLAogICAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIKfQ==">
+
+    <meta name="theme-color" content="#26a69a">
+
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f4f4;
+        }
+        main {
+            flex: 1 0 auto;
+            padding-bottom: 20px;
+        }
+        .tabs .tab a{
+            color: #26a69a;
+        }
+        .tabs .tab a:hover, .tabs .tab a.active {
+            color: #26a69a;
+        }
+        .tabs .indicator {
+            background-color: #26a69a;
+        }
+        .datepicker-date-display, .timepicker-digital-display {
+            background-color: #26a69a;
+        }
+        .datepicker-cancel, .datepicker-done, .timepicker-close {
+            color: #26a69a;
+        }
+        .btn, .btn-floating {
+            background-color: #26a69a;
+        }
+        .btn:hover, .btn-floating:hover {
+            background-color: #2bbbad;
+        }
+        .secondary-content {
+            color: #26a69a;
+        }
+        .card-panel {
+            margin-top: 2rem;
+        }
+        .collection-item .title {
+            font-weight: bold;
+        }
+        .collection-item p {
+            margin: 5px 0;
+        }
+         #toast-container {
+            top: auto !important;
+            right: auto !important;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        /* Estilos del Calendario */
+        .calendar-container {
+            margin-top: 20px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .calendar-header h5 {
+            margin: 0;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .calendar-day-name, .calendar-day {
+            text-align: center;
+            padding: 5px;
+            height: 40px;
+        }
+        .calendar-day-name {
+            font-weight: bold;
+        }
+        .calendar-day {
+            cursor: pointer;
+            border-radius: 50%;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        .calendar-day:hover {
+            background-color: #e0f2f1;
+        }
+        .calendar-day.other-month {
+            color: #aaa;
+        }
+        .calendar-day.today {
+            font-weight: bold;
+            border: 2px solid #26a69a;
+        }
+        .calendar-day.selected {
+            background-color: #26a69a;
+            color: white;
+        }
+        .med-taken-markers-container {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2px;
+        }
+        .med-taken-marker {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        #historical-report-list .collection-header h5 {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+        #modal-daily-log .modal-content h5 {
+             border-bottom: 2px solid #26a69a;
+            padding-bottom: 10px;
+        }
+        .collection-item .secondary-content a {
+            margin-left: 10px;
+        }
+        .collection-item .secondary-content i {
+            font-size: 20px;
+            color: #757575;
+            cursor: pointer;
+        }
+        .collection-item .secondary-content a:hover i {
+            color: #26a69a;
+        }
+        #modal-confirm {
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="teal">
+        <div class="nav-wrapper container">
+            <a href="#" class="brand-logo">MedTracker</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <ul class="tabs">
+                        <li class="tab col s4"><a class="active" href="#daily-log">Registro Diario</a></li>
+                        <li class="tab col s4"><a href="#meds-list">Medicamentos</a></li>
+                        <li class="tab col s4"><a href="#reports-settings">Reporte y Ajustes</a></li>
+                    </ul>
+                </div>
+                
+                <div id="daily-log" class="col s12">
+                    <div class="row">
+                        <div class="col s12">
+                             <div class="card-panel">
+                                <div id="calendar-container"></div>
+                                 <p class="center-align" style="margin-top: 20px; color: #757575;">Selecciona una fecha para ver o registrar tomas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="meds-list" class="col s12">
+                    <div class="card-panel">
+                        <h5>Mis Medicamentos</h5>
+                        <ul class="collection" id="medicamentos-collection"></ul>
+                    </div>
+                </div>
+
+                <div id="reports-settings" class="col s12">
+                     <div class="card-panel">
+                        <h5>Reporte Histórico</h5>
+                        <p>Historial completo de todas las tomas de medicamentos.</p>
+                        <button class="btn" id="export-pdf-btn"><i class="material-icons left">picture_as_pdf</i>Exportar a PDF</button>
+                        <ul class="collection" id="historical-report-list" style="margin-top: 20px;"></ul>
+                    </div>
+                     <div class="card-panel">
+                        <h5>Ajustes Generales</h5>
+                        <div class="switch">
+                            <label>
+                                Notificaciones Desactivadas
+                                <input type="checkbox" id="global-notifications-switch" checked>
+                                <span class="lever"></span>
+                                Notificaciones Activadas
+                            </label>
+                        </div>
+                    </div>
+                     <div class="card-panel">
+                        <h5>Gestión de Datos</h5>
+                        <p>Guarda o recupera todos tus datos desde un archivo.</p>
+                        <button class="btn" id="export-json-btn"><i class="material-icons left">file_download</i>Exportar Datos</button>
+                        <div class="file-field input-field" style="margin-top: 20px;">
+                            <div class="btn">
+                                <span><i class="material-icons">file_upload</i> Importar</span>
+                                <input type="file" id="import-json-input" accept=".json">
+                            </div>
+                            <div class="file-path-wrapper">
+                                <input class="file-path validate" type="text" placeholder="Cargar archivo de datos">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="fixed-action-btn">
+        <a class="btn-floating btn-large waves-effect waves-light modal-trigger" href="#modal-add-med">
+            <i class="large material-icons">add</i>
+        </a>
+    </div>
+
+    <div id="modal-add-med" class="modal">
+        <div class="modal-content">
+            <h4 id="modal-title">Añadir Medicamento</h4>
+            <form id="form-add-med">
+                <input type="hidden" id="med-id">
+                <input type="hidden" id="med-color">
+                <div class="input-field">
+                    <input id="med-name" type="text" required>
+                    <label for="med-name">Nombre del Medicamento</label>
+                </div>
+                <div class="input-field">
+                    <textarea id="med-description" class="materialize-textarea"></textarea>
+                    <label for="med-description">Descripción / Notas</label>
+                </div>
+                <div class="input-field">
+                    <input id="med-quantity" type="number" min="0" required>
+                    <label for="med-quantity">Cantidad Inicial</label>
+                </div>
+                <div class="input-field">
+                    <input id="med-time" type="text" class="timepicker">
+                    <label for="med-time">Hora Recomendada de Toma</label>
+                </div>
+                <div class="switch">
+                    <label>
+                        Desactivar Notificaciones
+                        <input type="checkbox" id="med-notifications" checked>
+                        <span class="lever"></span>
+                        Activar Notificaciones
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancelar</a>
+            <button type="submit" form="form-add-med" class="waves-effect waves-green btn">Guardar</button>
+        </div>
+    </div>
+
+    <div id="modal-daily-log" class="modal modal-fixed-footer">
+        <div class="modal-content" id="modal-daily-log-content"></div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cerrar</a>
+        </div>
+    </div>
+    
+    <!-- Modal de Confirmación -->
+    <div id="modal-confirm" class="modal">
+        <div class="modal-content">
+            <h4 id="confirm-modal-title">Confirmar Eliminación</h4>
+            <p id="confirm-modal-text">¿Estás seguro?</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancelar</a>
+            <a href="#!" id="confirm-modal-delete-btn" class="waves-effect waves-red btn">Eliminar</a>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const app = {
+            db: null,
+            currentDate: new Date(),
+            init() {
+                M.Modal.init(document.querySelectorAll('.modal'));
+                M.Timepicker.init(document.querySelectorAll('.timepicker'), { autoClose: true });
+                M.Tabs.init(document.querySelector('.tabs'));
+                
+                this.dbManager.initDb().then(() => {
+                    this.ui.renderAll();
+                    this.attachEventListeners();
+                    this.notifications.init();
+                });
+            },
+
+            dbManager: {
+                initDb() {
+                    return new Promise((resolve, reject) => {
+                        const request = indexedDB.open('MedTrackerDB_v6', 1); 
+                        request.onerror = event => reject('Error al abrir DB', event);
+                        request.onsuccess = event => {
+                            app.db = event.target.result;
+                            resolve();
+                        };
+                        request.onupgradeneeded = event => {
+                            const db = event.target.result;
+                            if (!db.objectStoreNames.contains('medicamentos')) {
+                                db.createObjectStore('medicamentos', { keyPath: 'id', autoIncrement: true });
+                            }
+                            if (!db.objectStoreNames.contains('historial')) {
+                                const store = db.createObjectStore('historial', { keyPath: 'id', autoIncrement: true });
+                                store.createIndex('date', 'date', { unique: false });
+                            }
+                        };
+                    });
+                },
+                saveOp(storeName, data) {
+                    return new Promise((resolve, reject) => {
+                        const transaction = app.db.transaction([storeName], 'readwrite');
+                        const store = transaction.objectStore(storeName);
+                        const request = data.id ? store.put(data) : store.add(data);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = e => reject(`Error en saveOp [${storeName}]`, e);
+                    });
+                },
+                getOp(storeName, id) {
+                    return new Promise((resolve, reject) => {
+                        const transaction = app.db.transaction([storeName], 'readonly');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.get(id);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = e => reject(`Error en getOp [${storeName}]`, e);
+                    });
+                },
+                getAllOp(storeName) {
+                     return new Promise((resolve, reject) => {
+                        const transaction = app.db.transaction([storeName], 'readonly');
+                        const store = transaction.objectStore(storeName);
+                        const request = store.getAll();
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = e => reject(`Error en getAllOp [${storeName}]`, e);
+                    });
+                },
+                deleteOp(storeName, id) {
+                    return new Promise((resolve, reject) => {
+                        const transaction = app.db.transaction([storeName], 'readwrite');
+                        transaction.oncomplete = () => {
+                            resolve();
+                        };
+                        transaction.onerror = (event) => {
+                            reject(`Transaction error: ${event.target.error}`);
+                        };
+                        const store = transaction.objectStore(storeName);
+                        store.delete(id);
+                    });
+                },
+                getHistoryByDate(date) {
+                    return new Promise((resolve, reject) => {
+                        const startOfDay = new Date(date).setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(date).setHours(23, 59, 59, 999);
+                        const transaction = app.db.transaction(['historial'], 'readonly');
+                        const store = transaction.objectStore('historial');
+                        const index = store.index('date');
+                        const range = IDBKeyRange.bound(startOfDay, endOfDay);
+                        const request = index.getAll(range);
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = e => reject('Error en getHistoryByDate', e);
+                    });
+                },
+                async exportData() {
+                    const meds = await this.getAllOp('medicamentos');
+                    const history = await this.getAllOp('historial');
+                    const settings = { globalNotifications: document.getElementById('global-notifications-switch').checked };
+                    return { meds, history, settings };
+                },
+                async importData(data) {
+                    const txMeds = app.db.transaction(['medicamentos'], 'readwrite');
+                    await new Promise(resolve => {
+                        txMeds.objectStore('medicamentos').clear().onsuccess = resolve;
+                    });
+                    data.meds.forEach(med => txMeds.objectStore('medicamentos').add(med));
+
+                    const txHistory = app.db.transaction(['historial'], 'readwrite');
+                     await new Promise(resolve => {
+                        txHistory.objectStore('historial').clear().onsuccess = resolve;
+                    });
+                    data.history.forEach(entry => txHistory.objectStore('historial').add(entry));
+                    
+                    document.getElementById('global-notifications-switch').checked = data.settings.globalNotifications;
+                    return Promise.all([txMeds.done, txHistory.done]);
+                }
+            },
+
+            ui: {
+                renderAll() {
+                    this.renderCalendar();
+                    this.renderMedsList();
+                    this.renderHistoricalReport();
+                },
+                async renderCalendar() {
+                    const container = document.getElementById('calendar-container');
+                    const { year, month } = { year: app.currentDate.getFullYear(), month: app.currentDate.getMonth() };
+                    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                    const [allMeds, history] = await Promise.all([app.dbManager.getAllOp('medicamentos'), app.dbManager.getAllOp('historial')]);
+                    const medColorMap = new Map(allMeds.map(m => [m.id, m.color]));
+                    const historyByDay = history.reduce((acc, entry) => {
+                        const dateStr = new Date(entry.timestamp).toISOString().split('T')[0];
+                        if (!acc[dateStr]) acc[dateStr] = new Set();
+                        acc[dateStr].add(entry.medId);
+                        return acc;
+                    }, {});
+                    let html = `<div class="calendar-header">
+                            <button class="btn-flat waves-effect" id="prev-month-btn"><i class="material-icons">chevron_left</i></button>
+                            <h5>${monthNames[month]} ${year}</h5>
+                            <button class="btn-flat waves-effect" id="next-month-btn"><i class="material-icons">chevron_right</i></button>
+                        </div>
+                        <div class="calendar-grid">
+                            ${['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(d => `<div class="calendar-day-name">${d}</div>`).join('')}`;
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    for (let i = 0; i < firstDay.getDay(); i++) html += `<div></div>`;
+                    const today = new Date().setHours(0,0,0,0);
+                    const selectedDay = new Date(app.currentDate).setHours(0,0,0,0);
+                    for (let day = 1; day <= lastDay.getDate(); day++) {
+                        const thisDate = new Date(year, month, day);
+                        const dateString = thisDate.toISOString().split('T')[0];
+                        let classes = 'calendar-day';
+                        if (thisDate.getTime() === today) classes += ' today';
+                        if (thisDate.getTime() === selectedDay) classes += ' selected';
+                        let markersHtml = '';
+                        if (historyByDay[dateString]) {
+                            markersHtml = `<div class="med-taken-markers-container">${[...historyByDay[dateString]].map(medId => `<div class="med-taken-marker" style="background-color: ${medColorMap.get(medId) || '#ccc'};"></div>`).join('')}</div>`;
+                        }
+                        html += `<div class="${classes}" data-date="${dateString}">${day}${markersHtml}</div>`;
+                    }
+                    container.innerHTML = html + `</div>`;
+                },
+                async renderMedsList() {
+                    const meds = await app.dbManager.getAllOp('medicamentos');
+                    const collection = document.getElementById('medicamentos-collection');
+                    collection.innerHTML = meds.length ? '' : '<li class="collection-item">No has añadido medicamentos.</li>';
+                    meds.forEach(med => {
+                        collection.innerHTML += `<li class="collection-item avatar">
+                            <i class="material-icons circle" style="background-color: ${med.color || '#26a69a'}">local_hospital</i>
+                            <span class="title">${med.name}</span>
+                            <p>Quedan: <strong>${med.quantity}</strong><br>Hora: ${med.time || 'N/A'}</p>
+                            <div class="secondary-content">
+                                <a href="#!" class="edit-med" data-id="${med.id}"><i class="material-icons">edit</i></a>
+                                <a href="#!" class="delete-med" data-id="${med.id}"><i class="material-icons">delete</i></a>
+                            </div>
+                        </li>`;
+                    });
+                },
+                async renderDailyLog(date, openModal = true) {
+                    const [meds, historyForDay] = await Promise.all([app.dbManager.getAllOp('medicamentos'), app.dbManager.getHistoryByDate(date)]);
+                    const container = document.getElementById('modal-daily-log-content');
+                    const formattedDate = date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    container.innerHTML = `<h5>Tomas para el ${formattedDate}</h5>`;
+                    if (!meds.length) {
+                        container.innerHTML += '<p>No hay medicamentos configurados.</p>';
+                    } else {
+                         meds.forEach(med => {
+                            const takenEntries = historyForDay.filter(h => h.medId === med.id);
+                            container.innerHTML += `<div class="card">
+                                <div class="card-content">
+                                    <span class="card-title">${med.name}</span>
+                                    <p>Quedan: ${med.quantity}</p>
+                                    <p>Hora recomendada: ${med.time || 'N/A'}</p>
+                                    ${med.quantity > 0 ? `<button class="btn waves-effect waves-light take-dose-btn" data-id="${med.id}" style="margin-top: 15px;">Tomar Dosis</button>` : '<p class="red-text" style="margin-top: 15px;">No quedan dosis.</p>'}
+                                    <ul class="collection with-header" style="margin-top: 20px; ${takenEntries.length === 0 ? 'display:none;' : ''}">
+                                        <li class="collection-header"><h6>Tomas registradas hoy</h6></li>
+                                        ${takenEntries.map(entry => `<li class="collection-item" data-history-id="${entry.id}">
+                                            <div>Tomado a las ${new Date(entry.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                                <span class="secondary-content">
+                                                    <a href="#!" class="edit-dose" title="Editar hora"><i class="material-icons">edit</i></a>
+                                                    <a href="#!" class="delete-dose" title="Eliminar toma"><i class="material-icons">delete</i></a>
+                                                </span>
+                                            </div></li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>`;
+                        });
+                    }
+                    if (openModal) M.Modal.getInstance(document.getElementById('modal-daily-log')).open();
+                },
+                async renderHistoricalReport() {
+                    const [history, allMeds] = await Promise.all([app.dbManager.getAllOp('historial'), app.dbManager.getAllOp('medicamentos')]);
+                    history.reverse();
+                    const medMap = new Map(allMeds.map(m => [m.id, m.name]));
+                    const list = document.getElementById('historical-report-list');
+                    if (!history.length) {
+                        list.innerHTML = '<li class="collection-item">No hay historial de tomas.</li>';
+                        return;
+                    }
+                    const groupedByDay = history.reduce((acc, entry) => {
+                        const dateKey = new Date(entry.timestamp).toISOString().split('T')[0];
+                        if (!acc[dateKey]) acc[dateKey] = { displayDate: new Date(entry.timestamp).toLocaleDateString('es-ES'), entries: [] };
+                        acc[dateKey].entries.push(entry);
+                        return acc;
+                    }, {});
+                    let htmlContent = '';
+                    for (const key in groupedByDay) {
+                        const group = groupedByDay[key];
+                        htmlContent += `<li class="collection-header"><h5>${group.displayDate}</h5></li>`;
+                        group.entries.forEach(entry => {
+                            htmlContent += `<li class="collection-item">${medMap.get(entry.medId) || 'Medicamento eliminado'} - Tomado a las ${new Date(entry.timestamp).toLocaleTimeString()}</li>`;
+                        });
+                    }
+                    list.innerHTML = htmlContent;
+                },
+                openMedModal(med = null) {
+                    const form = document.getElementById('form-add-med');
+                    form.reset();
+                    document.getElementById('modal-title').innerText = med ? 'Editar Medicamento' : 'Añadir Medicamento';
+                    document.getElementById('med-id').value = med ? med.id : '';
+                    if(med) {
+                        document.getElementById('med-name').value = med.name;
+                        document.getElementById('med-description').value = med.description;
+                        document.getElementById('med-quantity').value = med.quantity;
+                        document.getElementById('med-time').value = med.time;
+                        document.getElementById('med-notifications').checked = med.notifications;
+                        document.getElementById('med-color').value = med.color;
+                    }
+                    M.updateTextFields();
+                    M.Modal.getInstance(document.getElementById('modal-add-med')).open();
+                }
+            },
+
+            attachEventListeners() {
+                document.querySelector('.fixed-action-btn a').addEventListener('click', () => this.ui.openMedModal());
+
+                document.getElementById('form-add-med').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const med = {
+                        name: document.getElementById('med-name').value,
+                        description: document.getElementById('med-description').value,
+                        quantity: parseInt(document.getElementById('med-quantity').value),
+                        time: document.getElementById('med-time').value,
+                        notifications: document.getElementById('med-notifications').checked,
+                        color: document.getElementById('med-color').value || this.helpers.getRandomColor()
+                    };
+                    const id = document.getElementById('med-id').value;
+                    if(id) med.id = parseInt(id);
+                    await this.dbManager.saveOp('medicamentos', med);
+                    M.toast({html: 'Medicamento guardado'});
+                    M.Modal.getInstance(document.getElementById('modal-add-med')).close();
+                    this.ui.renderAll();
+                });
+                
+                document.getElementById('medicamentos-collection').addEventListener('click', async (e) => {
+                    const editBtn = e.target.closest('.edit-med');
+                    if (editBtn) {
+                        const med = await this.dbManager.getOp('medicamentos', parseInt(editBtn.dataset.id));
+                        this.ui.openMedModal(med);
+                        return;
+                    }
+                    const deleteBtn = e.target.closest('.delete-med');
+                    if (deleteBtn) {
+                        const idToDelete = parseInt(deleteBtn.dataset.id);
+                        this.helpers.showConfirmation('¿Estás seguro de que quieres eliminar este medicamento?', async () => {
+                            await this.dbManager.deleteOp('medicamentos', idToDelete);
+                            M.toast({html: 'Medicamento eliminado'});
+                            this.ui.renderAll();
+                        });
+                    }
+                });
+
+                document.getElementById('modal-daily-log-content').addEventListener('click', async (e) => {
+                    const takeBtn = e.target.closest('.take-dose-btn');
+                    if(takeBtn) {
+                        const medId = parseInt(takeBtn.dataset.id);
+                        const med = await this.dbManager.getOp('medicamentos', medId);
+                        if (med.quantity > 0) {
+                            med.quantity -= 1;
+                            await this.dbManager.saveOp('medicamentos', med);
+                            const now = new Date();
+                            const timestamp = new Date(this.currentDate).setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+                            await this.dbManager.saveOp('historial', { medId, timestamp, date: new Date(this.currentDate).setHours(0,0,0,0) });
+                            M.toast({html: `Dosis de ${med.name} registrada.`});
+                            await this.ui.renderDailyLog(this.currentDate, false);
+                            this.ui.renderAll();
+                        }
+                        return;
+                    }
+
+                    const deleteBtn = e.target.closest('.delete-dose');
+                    if (deleteBtn) {
+                        const historyId = parseInt(deleteBtn.closest('.collection-item').dataset.historyId);
+                        this.helpers.showConfirmation('¿Estás seguro de que quieres eliminar esta toma?', async () => {
+                            const entry = await this.dbManager.getOp('historial', historyId);
+                            if (entry) {
+                                const med = await this.dbManager.getOp('medicamentos', entry.medId);
+                                if(med) {
+                                    med.quantity += 1;
+                                    await this.dbManager.saveOp('medicamentos', med);
+                                }
+                            }
+                            await this.dbManager.deleteOp('historial', historyId);
+                            M.toast({html: 'Toma eliminada y dosis devuelta.'});
+                            M.Modal.getInstance(document.getElementById('modal-daily-log')).close();
+                            this.ui.renderAll();
+                        });
+                        return;
+                    }
+
+                    const editBtn = e.target.closest('.edit-dose');
+                    if (editBtn) {
+                        const item = editBtn.closest('.collection-item');
+                        if (item.querySelector('.edit-time-input')) return;
+                        const entry = await this.dbManager.getOp('historial', parseInt(item.dataset.historyId));
+                        const currentTime = new Date(entry.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                        item.innerHTML = `<div class="row valign-wrapper" style="margin-bottom: 0;">
+                            <div class="input-field col s6" style="margin-top:0;"><input type="time" class="edit-time-input" value="${currentTime}"></div>
+                            <div class="col s6"><a href="#!" class="save-dose-time btn-small">OK</a><a href="#!" class="cancel-edit-dose"><i class="material-icons">close</i></a></div>
+                        </div>`;
+                        return;
+                    }
+                    
+                    const saveBtn = e.target.closest('.save-dose-time');
+                    if(saveBtn) {
+                        const item = saveBtn.closest('.collection-item');
+                        const newTime = item.querySelector('.edit-time-input').value;
+                        if(newTime) {
+                            const entry = await this.dbManager.getOp('historial', parseInt(item.dataset.historyId));
+                            const [hours, minutes] = newTime.split(':');
+                            entry.timestamp = new Date(entry.timestamp).setHours(hours, minutes);
+                            await this.dbManager.saveOp('historial', entry);
+                            M.toast({html: 'Hora actualizada.'});
+                            await this.ui.renderDailyLog(this.currentDate, false);
+                        }
+                        return;
+                    }
+
+                    if (e.target.closest('.cancel-edit-dose')) {
+                        await this.ui.renderDailyLog(this.currentDate, false);
+                    }
+                });
+                
+                document.getElementById('calendar-container').addEventListener('click', e => {
+                    const prevBtn = e.target.closest('#prev-month-btn');
+                    if (prevBtn) this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                    const nextBtn = e.target.closest('#next-month-btn');
+                    if (nextBtn) this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                    if(prevBtn || nextBtn) this.ui.renderAll();
+                    const dayEl = e.target.closest('.calendar-day:not(.other-month)');
+                    if (dayEl) {
+                        const [year, month, day] = dayEl.dataset.date.split('-').map(Number);
+                        this.currentDate = new Date(year, month - 1, day);
+                        this.ui.renderCalendar();
+                        this.ui.renderDailyLog(this.currentDate);
+                    }
+                });
+
+                document.getElementById('export-pdf-btn').addEventListener('click', this.pdf.exportReport.bind(this));
+                document.getElementById('export-json-btn').addEventListener('click', this.dataManagement.exportJSON.bind(this));
+                document.getElementById('import-json-input').addEventListener('change', this.dataManagement.importJSON.bind(this));
+            },
+            
+            notifications: {
+                intervalId: null,
+                init() {
+                    document.getElementById('global-notifications-switch').addEventListener('change', (e) => {
+                        if (e.target.checked) this.startCheck(); else this.stopCheck();
+                    });
+                    if (document.getElementById('global-notifications-switch').checked) {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') this.startCheck();
+                            else {
+                                document.getElementById('global-notifications-switch').checked = false;
+                                M.toast({ html: 'Permiso de notificaciones denegado.' });
+                            }
+                        });
+                    }
+                },
+                startCheck() {
+                    if (this.intervalId) clearInterval(this.intervalId);
+                    this.intervalId = setInterval(async () => {
+                        const now = new Date();
+                        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                        const meds = await app.dbManager.getAllOp('medicamentos');
+                        meds.forEach(med => {
+                            if (med.notifications && med.time === currentTime) this.showNotification(med);
+                        });
+                    }, 60000);
+                },
+                stopCheck() {
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                        this.intervalId = null;
+                    }
+                },
+                showNotification(med) {
+                    const title = `Hora de tomar tu ${med.name}`;
+                    const options = {
+                        body: `No olvides tomar tu dosis. ${med.description || ''}`,
+                        icon: 'https://placehold.co/192x192/9e9e9e/333333?text=Med'
+                    };
+                    if ('Notification' in window) new Notification(title, options);
+                }
+            },
+            pdf: {
+                async exportReport() {
+                    M.toast({html: 'Generando PDF...'});
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    const [history, allMeds] = await Promise.all([app.dbManager.getAllOp('historial'), app.dbManager.getAllOp('medicamentos')]);
+                    history.reverse();
+                    const medMap = new Map(allMeds.map(m => [m.id, m.name]));
+                    const head = [['Fecha', 'Hora', 'Medicamento']];
+                    const body = history.map(entry => {
+                        const date = new Date(entry.timestamp);
+                        return [ date.toLocaleDateString('es-ES'), date.toLocaleTimeString('es-ES'), medMap.get(entry.medId) || 'N/A' ];
+                    });
+                    doc.text("Reporte Histórico de Toma de Medicamentos", 14, 15);
+                    doc.autoTable({ startY: 20, head, body, theme: 'striped', headStyles: { fillColor: [38, 166, 154] } });
+                    doc.save('reporte_medicamentos.pdf');
+                }
+            },
+            dataManagement: {
+                async exportJSON() {
+                    try {
+                        const data = await app.dbManager.exportData();
+                        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `medtracker_backup_${new Date().toISOString().slice(0,10)}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        M.toast({html: 'Datos exportados.'});
+                    } catch (e) { M.toast({html: 'Error al exportar.'}) }
+                },
+                importJSON(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (!data.meds || !data.history || !data.settings) throw new Error('Formato inválido.');
+                            app.helpers.showConfirmation('Esto reemplazará todos tus datos actuales. ¿Deseas continuar?', async () => {
+                                await app.dbManager.importData(data);
+                                M.toast({html: 'Datos importados.'});
+                                app.ui.renderAll();
+                            });
+                        } catch (err) { M.toast({html: 'Error: Archivo no válido.'}) }
+                         finally { event.target.value = ''; }
+                    };
+                    reader.readAsText(file);
+                }
+            },
+            helpers: {
+                getRandomColor: () => `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
+                showConfirmation(message, onConfirm) {
+                    const modalElem = document.getElementById('modal-confirm');
+                    const instance = M.Modal.getInstance(modalElem);
+                    document.getElementById('confirm-modal-text').innerText = message;
+                    const confirmBtn = document.getElementById('confirm-modal-delete-btn');
+                    
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                    newConfirmBtn.addEventListener('click', () => {
+                        instance.close();
+                        onConfirm();
+                    }, { once: true });
+
+                    instance.open();
+                }
+            }
+        };
+
+        app.init();
+    });
+    </script>
+</body>
+</html>
+
