@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seguimiento de Medicamentos</title>
+    <title>Seguimiento de Medicamentos y Presión</title>
     
     <!-- Materialize CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
@@ -147,6 +147,67 @@
         #modal-confirm {
             max-width: 400px;
         }
+
+        /* --- Estilos para las etiquetas de Presión Arterial --- */
+        .bp-badge {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        .bp-baja { background-color: #2196F3; } /* Azul */
+        .bp-normal { background-color: #4CAF50; } /* Verde */
+        .bp-elevada { background-color: #FFC107; color: #000; } /* Ámbar (Normal-Alta) */
+        .bp-hipertension-1 { background-color: #FF9800; } /* Naranja */
+        .bp-hipertension-2 { background-color: #F44336; } /* Rojo */
+        
+        /* --- Estilos para Pestañas Responsivas --- */
+        .tabs .tab a {
+            /* Usar flexbox para alinear icono y texto */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* Sobrescribir valores por defecto de Materialize */
+            line-height: normal; /* Evita que el texto alto se corte */
+            padding: 0 10px; /* Espaciado horizontal */
+            text-overflow: clip; /* Evita '...' */
+            font-size: 13px; /* Texto ligeramente más pequeño en escritorio */
+        }
+        
+        .tabs .tab a .material-icons {
+            margin-right: 6px; /* Espacio entre icono y texto */
+        }
+
+        /* --- Vista Móvil (s) --- */
+        @media only screen and (max-width: 600px) {
+            .tabs .tab a .tab-text {
+                display: none; /* Ocultar el texto en móviles */
+            }
+            .tabs .tab a .material-icons {
+                margin-right: 0; /* Quitar margen si el icono está solo */
+                font-size: 24px; /* Tamaño de icono estándar */
+            }
+            .tabs .tab a {
+                padding: 0 12px; /* Padding para el icono solo */
+            }
+        }
+        
+        /* --- Vista Tablet (m) --- */
+        @media only screen and (min-width: 601px) and (max-width: 992px) {
+            .tabs .tab a {
+                font-size: 12px; /* Texto aún más pequeño en tablets */
+                padding: 0 5px;
+            }
+            .tabs .tab a .material-icons {
+                font-size: 20px; /* Icono más pequeño en tablet */
+                margin-right: 4px;
+            }
+        }
+        /* --- Fin de nuevos estilos --- */
     </style>
 </head>
 <body>
@@ -161,10 +222,24 @@
         <div class="container">
             <div class="row">
                 <div class="col s12">
+                    <!-- Pestañas actualizadas con iconos y spans -->
                     <ul class="tabs">
-                        <li class="tab col s4"><a class="active" href="#daily-log">Registro Diario</a></li>
-                        <li class="tab col s4"><a href="#meds-list">Medicamentos</a></li>
-                        <li class="tab col s4"><a href="#reports-settings">Reporte y Ajustes</a></li>
+                        <li class="tab col s3"><a class="active" href="#daily-log">
+                            <i class="material-icons">event_note</i>
+                            <span class="tab-text">Registro Diario</span>
+                        </a></li>
+                        <li class="tab col s3"><a href="#meds-list">
+                            <i class="material-icons">medication</i>
+                            <span class="tab-text">Medicamentos</span>
+                        </a></li>
+                        <li class="tab col s3"><a href="#pressure-log">
+                            <i class="material-icons">favorite_border</i>
+                            <span class="tab-text">Presión Arterial</span>
+                        </a></li>
+                        <li class="tab col s3"><a href="#reports-settings">
+                            <i class="material-icons">assessment</i>
+                            <span class="tab-text">Reporte y Ajustes</span>
+                        </a></li>
                     </ul>
                 </div>
                 
@@ -186,12 +261,62 @@
                     </div>
                 </div>
 
+                <!-- Módulo de Presión Arterial -->
+                <div id="pressure-log" class="col s12">
+                    <div class="card-panel">
+                        <h5>Registro de Presión Arterial</h5>
+                        <!-- Formulario para añadir lecturas -->
+                        <div class="row" style="margin-bottom: 0;">
+                            <div class="input-field col s4">
+                                <input id="bp-systolic" type="number" required>
+                                <label for="bp-systolic">Sistólica (SYS)</label>
+                            </div>
+                            <div class="input-field col s4">
+                                <input id="bp-diastolic" type="number" required>
+                                <label for="bp-diastolic">Diastólica (DIA)</label>
+                            </div>
+                            <div class="input-field col s4">
+                                <input id="bp-pulse" type="number">
+                                <label for="bp-pulse">Pulso (PUL)</label>
+                            </div>
+                        </div>
+                        <button class="btn" id="save-bp-btn"><i class="material-icons left">add_circle</i>Guardar Lectura</button>
+                        
+                        <h5 style="margin-top: 2.5rem; margin-bottom: 1rem;">Historial de Presión</h5>
+                        
+                        <!-- Leyenda de Colores (Basada en OMS/ISH) -->
+                        <div style="margin-bottom: 15px; font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 10px;">
+                            <span><span class="bp-badge bp-baja">Baja</span></span>
+                            <span><span class="bp-badge bp-normal">Normal</span></span>
+                            <span><span class="bp-badge bp-elevada">Normal-Alta</span></span>
+                            <span><span class="bp-badge bp-hipertension-1">Grado 1</span></span>
+                            <span><span class="bp-badge bp-hipertension-2">Grado 2+</span></span>
+                        </div>
+
+                        <ul class="collection" id="pressure-history-list">
+                            <!-- Las lecturas se renderizarán aquí -->
+                        </ul>
+                    </div>
+                </div>
+
+
                 <div id="reports-settings" class="col s12">
                      <div class="card-panel">
                         <h5>Reporte Histórico</h5>
-                        <p>Historial completo de todas las tomas de medicamentos.</p>
-                        <button class="btn" id="export-pdf-btn"><i class="material-icons left">picture_as_pdf</i>Exportar a PDF</button>
-                        <ul class="collection" id="historical-report-list" style="margin-top: 20px;"></ul>
+                        <!-- BOTONES DE REPORTE ACTUALIZADOS -->
+                        <p>Exporta un reporte PDF de tus historiales.</p>
+                        <button class="btn" id="export-meds-pdf-btn" style="margin-right: 10px; margin-bottom: 10px;">
+                            <i class="material-icons left">medication</i>Exportar Medicamentos
+                        </button>
+                        <button class="btn" id="export-pressure-pdf-btn" style="margin-bottom: 10px;">
+                            <i class="material-icons left">favorite_border</i>Exportar Presión
+                        </button>
+                        <!-- FIN DE BOTONES ACTUALIZADOS -->
+                        
+                        <h5 style="margin-top: 2rem;">Historial de Tomas</h5>
+                        <ul class="collection" id="historical-report-list" style="margin-top: 20px;">
+                            <!-- Historial de medicamentos se sigue mostrando aquí -->
+                        </ul>
                     </div>
                      <div class="card-panel">
                         <h5>Ajustes Generales</h5>
@@ -311,7 +436,8 @@
             dbManager: {
                 initDb() {
                     return new Promise((resolve, reject) => {
-                        const request = indexedDB.open('MedTrackerDB_v6', 1); 
+                        // Incrementar versión para el nuevo almacén
+                        const request = indexedDB.open('MedTrackerDB_v7', 1); 
                         request.onerror = event => reject('Error al abrir DB', event);
                         request.onsuccess = event => {
                             app.db = event.target.result;
@@ -324,6 +450,11 @@
                             }
                             if (!db.objectStoreNames.contains('historial')) {
                                 const store = db.createObjectStore('historial', { keyPath: 'id', autoIncrement: true });
+                                store.createIndex('date', 'date', { unique: false });
+                            }
+                            // Nuevo almacén para Presión Arterial
+                            if (!db.objectStoreNames.contains('presionArterial')) {
+                                const store = db.createObjectStore('presionArterial', { keyPath: 'id', autoIncrement: true });
                                 store.createIndex('date', 'date', { unique: false });
                             }
                         };
@@ -385,8 +516,9 @@
                 async exportData() {
                     const meds = await this.getAllOp('medicamentos');
                     const history = await this.getAllOp('historial');
+                    const pressure = await this.getAllOp('presionArterial'); // Exportar presión
                     const settings = { globalNotifications: document.getElementById('global-notifications-switch').checked };
-                    return { meds, history, settings };
+                    return { meds, history, settings, pressure }; // Añadir presión al objeto
                 },
                 async importData(data) {
                     const txMeds = app.db.transaction(['medicamentos'], 'readwrite');
@@ -401,6 +533,16 @@
                     });
                     data.history.forEach(entry => txHistory.objectStore('historial').add(entry));
                     
+                    // Importar presión arterial si existe en el backup
+                    if (data.pressure) {
+                        const txPressure = app.db.transaction(['presionArterial'], 'readwrite');
+                         await new Promise(resolve => {
+                            txPressure.objectStore('presionArterial').clear().onsuccess = resolve;
+                        });
+                        data.pressure.forEach(entry => txPressure.objectStore('presionArterial').add(entry));
+                        await txPressure.done;
+                    }
+                    
                     document.getElementById('global-notifications-switch').checked = data.settings.globalNotifications;
                     return Promise.all([txMeds.done, txHistory.done]);
                 }
@@ -411,6 +553,7 @@
                     this.renderCalendar();
                     this.renderMedsList();
                     this.renderHistoricalReport();
+                    this.renderPressureLog(); // Añadida llamada a render
                 },
                 async renderCalendar() {
                     const container = document.getElementById('calendar-container');
@@ -499,12 +642,13 @@
                     if (openModal) M.Modal.getInstance(document.getElementById('modal-daily-log')).open();
                 },
                 async renderHistoricalReport() {
+                    // Esta función ahora solo muestra el historial de medicamentos en la pestaña "Reporte"
                     const [history, allMeds] = await Promise.all([app.dbManager.getAllOp('historial'), app.dbManager.getAllOp('medicamentos')]);
                     history.reverse();
                     const medMap = new Map(allMeds.map(m => [m.id, m.name]));
                     const list = document.getElementById('historical-report-list');
                     if (!history.length) {
-                        list.innerHTML = '<li class="collection-item">No hay historial de tomas.</li>';
+                        list.innerHTML = '<li class="collection-item">No hay historial de tomas de medicamentos.</li>';
                         return;
                     }
                     const groupedByDay = history.reduce((acc, entry) => {
@@ -522,6 +666,40 @@
                         });
                     }
                     list.innerHTML = htmlContent;
+                },
+                // Nueva función para renderizar el historial de presión
+                async renderPressureLog() {
+                    const readings = await app.dbManager.getAllOp('presionArterial');
+                    readings.reverse(); // Mostrar las más recientes primero
+                    const list = document.getElementById('pressure-history-list');
+                    
+                    if (!readings.length) {
+                        list.innerHTML = '<li class="collection-item">No hay lecturas de presión registradas.</li>';
+                        return;
+                    }
+
+                    list.innerHTML = ''; // Limpiar lista
+                    readings.forEach(r => {
+                        const date = new Date(r.timestamp);
+                        const formattedDate = date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        const formattedTime = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                        
+                        // Obtener categoría y color
+                        const category = app.helpers.getPressureCategory(r.sistolica, r.diastolica);
+
+                        list.innerHTML += `<li class="collection-item">
+                            <div>
+                                <span class="title" style="font-weight: 500;">${r.sistolica} / ${r.diastolica}</span>
+                                <!-- Badge de color -->
+                                <span class="bp-badge ${category.class}">${category.text}</span>
+
+                                <span style="color: #757575; margin-left: 10px;">(Pulso: ${r.pulso || 'N/A'})</span>
+                                <span class="secondary-content" style="font-size: 0.9rem;">
+                                    ${formattedDate} ${formattedTime}
+                                </span>
+                            </div>
+                        </li>`;
+                    });
                 },
                 openMedModal(med = null) {
                     const form = document.getElementById('form-add-med');
@@ -666,7 +844,42 @@
                     }
                 });
 
-                document.getElementById('export-pdf-btn').addEventListener('click', this.pdf.exportReport.bind(this));
+                // Event listener para el nuevo botón de guardar presión arterial
+                document.getElementById('save-bp-btn').addEventListener('click', async () => {
+                    const sistolica = parseInt(document.getElementById('bp-systolic').value);
+                    const diastolica = parseInt(document.getElementById('bp-diastolic').value);
+                    const pulso = parseInt(document.getElementById('bp-pulse').value) || null; // Guardar null si está vacío
+
+                    if (!sistolica || !diastolica) {
+                        M.toast({html: 'Por favor, ingresa la sistólica y diastólica.'});
+                        return;
+                    }
+
+                    const now = new Date();
+                    const reading = {
+                        sistolica: sistolica,
+                        diastolica: diastolica,
+                        pulso: pulso,
+                        timestamp: now.getTime(),
+                        date: new Date(now).setHours(0,0,0,0) // Para agrupar por día
+                    };
+
+                    await this.dbManager.saveOp('presionArterial', reading);
+                    M.toast({html: 'Lectura de presión guardada.'});
+                    
+                    // Limpiar formulario y recargar la lista
+                    document.getElementById('bp-systolic').value = '';
+                    document.getElementById('bp-diastolic').value = '';
+                    document.getElementById('bp-pulse').value = '';
+                    M.updateTextFields();
+                    this.ui.renderPressureLog(); // Recargar la lista de presión
+                });
+
+                // --- EVENT LISTENERS PDF ACTUALIZADOS ---
+                document.getElementById('export-meds-pdf-btn').addEventListener('click', this.pdf.exportMedsReport.bind(this));
+                document.getElementById('export-pressure-pdf-btn').addEventListener('click', this.pdf.exportPressureReport.bind(this));
+                // --- FIN DE EVENT LISTENERS PDF ---
+                
                 document.getElementById('export-json-btn').addEventListener('click', this.dataManagement.exportJSON.bind(this));
                 document.getElementById('import-json-input').addEventListener('change', this.dataManagement.importJSON.bind(this));
             },
@@ -713,24 +926,63 @@
                     if ('Notification' in window) new Notification(title, options);
                 }
             },
+
+            // --- OBJETO PDF ACTUALIZADO CON FUNCIONES SEPARADAS ---
             pdf: {
-                async exportReport() {
-                    M.toast({html: 'Generando PDF...'});
+                async exportMedsReport() {
+                    M.toast({html: 'Generando PDF de Medicamentos...'});
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF();
-                    const [history, allMeds] = await Promise.all([app.dbManager.getAllOp('historial'), app.dbManager.getAllOp('medicamentos')]);
+                    const [history, allMeds] = await Promise.all([
+                        app.dbManager.getAllOp('historial'), 
+                        app.dbManager.getAllOp('medicamentos')
+                    ]);
+                    
+                    // --- Tabla de Medicamentos ---
                     history.reverse();
                     const medMap = new Map(allMeds.map(m => [m.id, m.name]));
-                    const head = [['Fecha', 'Hora', 'Medicamento']];
-                    const body = history.map(entry => {
+                    const headMeds = [['Fecha', 'Hora', 'Medicamento']];
+                    const bodyMeds = history.map(entry => {
                         const date = new Date(entry.timestamp);
                         return [ date.toLocaleDateString('es-ES'), date.toLocaleTimeString('es-ES'), medMap.get(entry.medId) || 'N/A' ];
                     });
                     doc.text("Reporte Histórico de Toma de Medicamentos", 14, 15);
-                    doc.autoTable({ startY: 20, head, body, theme: 'striped', headStyles: { fillColor: [38, 166, 154] } });
+                    doc.autoTable({ startY: 20, head: headMeds, body: bodyMeds, theme: 'striped', headStyles: { fillColor: [38, 166, 154] } });
+                    
                     doc.save('reporte_medicamentos.pdf');
+                },
+
+                async exportPressureReport() {
+                    M.toast({html: 'Generando PDF de Presión Arterial...'});
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const pressureHistory = await app.dbManager.getAllOp('presionArterial');
+
+                    // --- Tabla de Presión Arterial ---
+                    pressureHistory.reverse();
+                    const headPressure = [['Fecha', 'Hora', 'Sistólica', 'Diastólica', 'Pulso', 'Categoría']];
+                    const bodyPressure = pressureHistory.map(r => {
+                        const date = new Date(r.timestamp);
+                        const category = app.helpers.getPressureCategory(r.sistolica, r.diastolica);
+                        return [
+                            date.toLocaleDateString('es-ES'),
+                            date.toLocaleTimeString('es-ES'),
+                            r.sistolica,
+                            r.diastolica,
+                            r.pulso || 'N/A',
+                            category.text
+                        ];
+                    });
+                    
+                    doc.text("Reporte Histórico de Presión Arterial", 14, 15);
+                    doc.autoTable({ startY: 20, head: headPressure, body: bodyPressure, theme: 'striped', headStyles: { fillColor: [38, 166, 154] } });
+                    
+                    doc.save('reporte_presion_arterial.pdf');
                 }
             },
+            // --- FIN DEL OBJETO PDF ACTUALIZADO ---
+
             dataManagement: {
                 async exportJSON() {
                     try {
@@ -752,6 +1004,7 @@
                     reader.onload = async (e) => {
                         try {
                             const data = JSON.parse(e.target.result);
+                            // Verificación básica
                             if (!data.meds || !data.history || !data.settings) throw new Error('Formato inválido.');
                             app.helpers.showConfirmation('Esto reemplazará todos tus datos actuales. ¿Deseas continuar?', async () => {
                                 await app.dbManager.importData(data);
@@ -766,6 +1019,56 @@
             },
             helpers: {
                 getRandomColor: () => `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`,
+                
+                // FUNCIÓN ACTUALIZADA: Clasificador de presión arterial (Basado en OMS/ISH)
+                getPressureCategory(sys, dia) {
+                    if (!sys || !dia) return { text: '', class: '' };
+                    
+                    // Las categorías se evalúan de más grave a menos grave
+                    // Guías OMS/ISH (y similares europeas)
+                    
+                    // Presión Baja (Hipotensión)
+                    if (sys < 90 || dia < 60) {
+                        return { text: 'Baja', class: 'bp-baja' };
+                    }
+                    
+                    // Hipertensión Grado 3 / Crisis
+                    if (sys >= 180 || dia >= 110) {
+                        return { text: 'Grado 3 / Crisis', class: 'bp-hipertension-2' };
+                    }
+                    // Hipertensión Grado 2
+                    if (sys >= 160 || dia >= 100) {
+                        return { text: 'Grado 2', class: 'bp-hipertension-2' };
+                    }
+                    // Hipertensión Grado 1
+                    if (sys >= 140 || dia >= 90) {
+                        return { text: 'Grado 1', class: 'bp-hipertension-1' };
+                    }
+                    // Normal-Alta
+                    if ((sys >= 130 && sys <= 139) || (dia >= 85 && dia <= 89)) {
+                        return { text: 'Normal-Alta', class: 'bp-elevada' };
+                    }
+                    
+                    // Normal (Cubre Óptima: <120/<80 y Normal: 120-129/80-84)
+                    // Si no es ninguna de las anteriores, y es <130 y <85, es Normal.
+                    if (sys < 130 && dia < 85) {
+                         return { text: 'Normal', class: 'bp-normal' };
+                    }
+
+                    // Fallback para casos mixtos que no cayeron en las categorías anteriores
+                    // Ej: 135 / 82 (Normal-Alta por sistólica)
+                    // Ej: 125 / 88 (Normal-Alta por diastólica)
+                    // Si llegó aquí, es porque una está alta y la otra no.
+                    if (sys >= 130 || dia >= 85) {
+                        return { text: 'Normal-Alta', class: 'bp-elevada' };
+                    }
+
+                    // El único caso restante debería ser <130 y <85, que ya está cubierto.
+                    // Pero por si acaso:
+                    return { text: 'Normal', class: 'bp-normal' }; 
+                },
+                // *** FIN DE FUNCIÓN ACTUALIZADA ***
+
                 showConfirmation(message, onConfirm) {
                     const modalElem = document.getElementById('modal-confirm');
                     const instance = M.Modal.getInstance(modalElem);
